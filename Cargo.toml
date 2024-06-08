@@ -3,10 +3,23 @@ name = "mappack-maker"
 version = "0.1.0"
 edition = "2021"
 
+[profile.release]
+opt-level = 3
+strip = true
+lto = true
+codegen-units = 1
+panic = "abort"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-futures = "0.3.30"
-reqwest = "0.12.4"
-tokio = { version = "1.37.0", features = ["full"] }
+futures = "0.3"
+reqwest = { version = "0.12" }
+tokio = { version = "1.37", features = ["full"] }
 async_zip = { version = "0.0.17", features = ["full"] }
+anyhow = "1.0"
+itertools = "0.12"
+bytes = "1.6"
+regex = { version = "1.10", features = ["use_std"] }
+dotenvy = "0.15"
+rosu-v2 = { git = "https://github.com/MaxOhn/rosu-v2", branch = "lazer" }
