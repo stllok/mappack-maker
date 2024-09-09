@@ -84,19 +84,17 @@ async fn attempt_download(
 async fn make_mappack(map_ids: Vec<u32>, mirrors: Vec<MirrorSource>, limit: u8) -> Result<()> {
     let client = Client::builder().build()?;
 
-    let maps = stream::iter(map_ids)
+    let mut maps = stream::iter(map_ids)
         .map(|id| attempt_download(id, &mirrors, &client))
-        .buffer_unordered(limit as usize)
-        .try_collect::<Vec<(ZipEntryBuilder, Bytes)>>()
-        .await?;
+        .buffer_unordered(limit as usize);
 
-    println!("Download complete, packing...");
     let mut bytes = vec![];
     let mut cursor = Cursor::new(&mut bytes);
     let mut writer = ZipFileWriter::with_tokio(&mut cursor);
-    for (builder, b) in maps {
+    while let Some((builder, b)) = maps.try_next().await? {
         writer.write_entry_whole(builder, &b).await?;
     }
+    println!("Packing...");
     writer.close().await?;
 
     tokio::fs::File::create("/tmp/mappack.zip")
@@ -111,7 +109,7 @@ async fn make_mappack(map_ids: Vec<u32>, mirrors: Vec<MirrorSource>, limit: u8) 
 async fn main() -> Result<(), anyhow::Error> {
     dotenv().expect(".env file not found");
     // test_bancho(&env::var("BANCHO_COOKIE").unwrap()).await
-    let limit = 5;
+    let limit = 10;
     let maps = std::fs::read_to_string("input.txt")
         .map_err(Into::into)
         .and_then(|s| {
@@ -124,15 +122,11 @@ async fn main() -> Result<(), anyhow::Error> {
         maps,
         vec![
             MirrorSource::Bancho { no_video: false },
-            MirrorSource::SayoBot {
-                level: SayoBotMinimum::NoVideo,
-                mirror: SayoBotServer::TencentYunCDN,
-            },
+            MirrorSource::NeriNyan { no_video: true },
             MirrorSource::SayoBot {
                 level: SayoBotMinimum::NoVideo,
                 mirror: SayoBotServer::Auto,
             },
-            MirrorSource::NeriNyan { no_video: true },
             MirrorSource::BeatConnect,
         ],
         limit,
