@@ -19,7 +19,7 @@ tokio = { version = "1.43", features = ["full"] }
 async_zip = { version = "0.0.17", features = ["full"] }
 anyhow = "1.0"
 itertools = "0.12"
-bytes = "1.6"
+bytes = "1.11"
 regex = { version = "1.10", features = ["use_std"] }
 dotenvy = "0.15"
 rosu-v2 = { git = "https://github.com/MaxOhn/rosu-v2", branch = "lazer" }
